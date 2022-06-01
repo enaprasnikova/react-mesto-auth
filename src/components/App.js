@@ -15,7 +15,7 @@ import Login from "./Login";
 import Register from "./Register";
 import InfoTooltip from "./InfoTooltip";
 import ProtectedRoute from "./ProtectedRoute";
-import { getContent } from "../utils/Auth";
+import {getContent, authorize, register} from "../utils/Auth";
 
 function App() {
   const [cards, setCards] = useState([]);
@@ -28,24 +28,28 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
   const [isSuccessRegister, setIsSuccessRegister] = useState(false);
+  const [isSuccessLogin, setIsSuccessLogin] = useState(false)
+  const [email, setEmail] = useState('');
 
   const history = useHistory()
 
   useEffect(() => {
-    api.getInitialCards()
-      .then(cardList => {
-        setCards(cardList)
-      })
-      .catch(error => console.log(error))
-  }, [])
 
-  useEffect(() => {
-    api.getUserInfo()
-      .then(res => {
-        setCurrentUser(res)
-      })
-      .catch(error => console.log(error))
-  }, [])
+    if(loggedIn) {
+      api.getInitialCards()
+        .then(cardList => {
+          setCards(cardList)
+        })
+        .catch(error => console.log(error))
+
+      api.getUserInfo()
+        .then(res => {
+          setCurrentUser(res)
+        })
+        .catch(error => console.log(error))
+    }
+
+  }, [loggedIn])
 
   useEffect(() => {
     tokenCheck()
@@ -145,17 +149,44 @@ function App() {
       .catch(error => console.log(error))
   }
 
-  function tokenCheck() {
-    if (localStorage.getItem('token')) {
-      const jwt = localStorage.getItem('token');
+  function handleAuthorize(formParams, setFormParams) {
+    authorize(formParams.email, formParams.password)
+      .then((data) => {
+        if (data.token){
+          setFormParams({email: '', password: ''})
+          tokenCheck()
+        } else {
+          handleInfoPopupClick()
+          setIsSuccessLogin(false)
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      }); // запускается, если пользователь не найден
+  }
 
+  function handleRegister(password, email) {
+    register(password, email)
+      .then((data) => {
+        setIsSuccessRegister(data ? true : false)
+      })
+      .catch((err) => console.log(err));
+  }
+
+  function tokenCheck() {
+    const jwt = localStorage.getItem('token');
+
+    if (jwt) {
       getContent(jwt).then((res) => {
+
         if (res) {
           setLoggedIn(true)
+          setEmail(res.data.email)
           history.push("/");
         }
       });
     }
+
   }
 
   const signOut = () => {
@@ -173,6 +204,7 @@ function App() {
               <Header
                 title={'Выход'}
                 onClick={signOut}
+                email={email}
               />
 
               <Main
@@ -228,9 +260,9 @@ function App() {
       </ProtectedRoute>
       <Route path="/sign-up">
         <Register
+          handleRegister={handleRegister}
           onSubmit={handleInfoPopupClick}
           history={history}
-          setSuccessRegister={setIsSuccessRegister}
           redirectToLogin={redirectToLogin}
         />
         <InfoTooltip
@@ -239,12 +271,18 @@ function App() {
           onClose={closeAllPopups}
           closeInfoPopupIfSuccess={closeInfoPopupIfSuccess}
         />
-
       </Route>
+
       <Route path="/sign-in">
         <Login
           history={history}
-          tokenCheck={tokenCheck}
+          handleAuthorize={handleAuthorize}
+        />
+        <InfoTooltip
+          isOpen={isInfoPopupOpen}
+          isSuccess={isSuccessLogin}
+          onClose={closeAllPopups}
+          closeInfoPopupIfSuccess={closeAllPopups}
         />
       </Route>
       <Route>

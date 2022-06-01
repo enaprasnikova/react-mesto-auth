@@ -7,7 +7,7 @@ function InfoTooltip ({isOpen, isSuccess, onClose, closeInfoPopupIfSuccess}) {
 
   return (
 
-    <section className={`popup ${isOpen ?'popup_opened' : ''}`}>
+    <section className={`popup ${isOpen &&'popup_opened'}`}>
       <div className="popup__container container">
         <button type='button' className="popup__close-button" onClick={isSuccess ? closeInfoPopupIfSuccess : onClose}>
           <img src={closeIconPath} className="popup__close-image" alt="крестик" />

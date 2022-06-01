@@ -1,10 +1,9 @@
 import React from 'react';
 import { useState } from 'react';
 import Header from "./Header";
-import { authorize } from "../utils/Auth";
 
 
-function Login({ history, tokenCheck }) {
+function Login({ history, handleAuthorize }) {
 
   const [formParams, setFormParams] = useState({
     email: '',
@@ -24,14 +23,7 @@ function Login({ history, tokenCheck }) {
     if (!formParams.email || !formParams.password){
       return;
     }
-    authorize(formParams.email, formParams.password)
-      .then((data) => {
-        if (data.token){
-          setFormParams({email: '', password: ''})
-          tokenCheck()
-        }
-      })
-      .catch(err => console.log(err)); // запускается, если пользователь не найден
+    handleAuthorize(formParams, setFormParams)
   }
 
   function redirectToRegister() {

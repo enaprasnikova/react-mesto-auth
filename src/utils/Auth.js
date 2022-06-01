@@ -18,7 +18,6 @@ export const register = (password, email) => {
         return (e)
       }
     })
-    .catch((err) => console.log(err));
 };
 
 export const authorize = (email, password) => {
@@ -34,10 +33,9 @@ export const authorize = (email, password) => {
     .then((data) => {
       if (data.token) {
         localStorage.setItem('token', data.token)
-        return data;
       }
+      return data;
     })
-    .catch(err => console.log(err))
 };
 
 export const getContent = (token) => {

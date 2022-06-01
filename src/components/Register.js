@@ -2,9 +2,8 @@ import React from 'react';
 import { useState } from 'react';
 import Header from "./Header";
 import { Link } from 'react-router-dom';
-import { register } from "../utils/Auth";
 
-function Register({ onSubmit, setSuccessRegister, redirectToLogin }) {
+function Register({ onSubmit, redirectToLogin, handleRegister }) {
 
   const [formParams, setFormParams] = useState({
     email: '',
@@ -22,10 +21,7 @@ function Register({ onSubmit, setSuccessRegister, redirectToLogin }) {
   function handleSubmit(e){
     e.preventDefault()
     let { password, email } = formParams;
-    register(password, email)
-      .then((data) => {
-        setSuccessRegister(data ? true : false)
-    })
+    handleRegister(password, email)
     onSubmit()
   }
 
